@@ -1,58 +1,81 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Coin Pusher</title>
-  <style>
-    :root{color-scheme:dark;--bg:#0b1020;--panel:#151d33;--text:#f5f7ff;--muted:#aab4d0;--accent:#ffd35a}
-    *{box-sizing:border-box}body{margin:0;background:linear-gradient(#111a30,#080c17);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;justify-content:center}
-    main{width:min(100%,760px);padding:14px}.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.card{background:var(--panel);border:1px solid #2b385e;border-radius:14px;padding:9px;text-align:center}.label{font-size:11px;color:var(--muted)}.value{font-size:22px;font-weight:800}.jackpot{grid-column:1/-1;text-align:left;padding:10px 12px}.meter{height:10px;background:#0d1425;border-radius:999px;overflow:hidden;margin-top:6px}.meter>span{display:block;height:100%;width:0;background:linear-gradient(90deg,#f5b82e,#fff0a0);transition:width .2s}
-    .game-wrap{background:#070b14;border:1px solid #2b385e;border-radius:18px;padding:8px;box-shadow:0 12px 40px #0008}.stage{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;border-radius:12px;background:#1b263b;touch-action:manipulation}.stage canvas{width:100%;height:100%;display:block}.hint{position:absolute;left:10px;right:10px;top:10px;text-align:center;font-size:13px;color:#eef4ffcc;pointer-events:none;text-shadow:0 1px 4px #000}.controls{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:12px}button{min-height:50px;border:0;border-radius:14px;font-size:16px;font-weight:800;background:var(--accent);color:#332600}button.secondary{background:#263352;color:var(--text)}button:disabled{opacity:.45}.status{min-height:26px;margin-top:8px;text-align:center;color:var(--muted);font-size:14px}.small{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.5}.flash{animation:flash .35s ease}@keyframes flash{50%{filter:brightness(1.8)}}
-    @media(max-width:470px){main{padding:10px}.hud{gap:6px}.card{padding:7px 4px}.value{font-size:19px}.label{font-size:10px}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Coin Pusher - Gameplay V2</title>
+<style>
+:root{color-scheme:dark;--bg:#07101c;--panel:#111d2d;--line:#2f4563;--text:#f7fbff;--muted:#9fb1c7;--gold:#ffd45c;--red:#ff6677;--green:#62d99b}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#16314c,#07101c 55%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;justify-content:center}main{width:min(100%,780px);padding:12px}.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.card{background:#101c2baa;border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}.label{font-size:10px;color:var(--muted)}.value{font-size:20px;font-weight:900}.slot{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px}.reel{width:48px;height:44px;border-radius:9px;background:#05080d;border:2px solid #566b83;display:grid;place-items:center;font-size:27px;font-weight:900}.slotText{min-width:120px;font-size:12px;color:var(--muted)}.game-wrap{margin-top:9px;background:#050a10;border:1px solid var(--line);border-radius:18px;padding:8px;box-shadow:0 18px 50px #0009}.stage{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;border-radius:12px;background:#152638;touch-action:none}.stage canvas{width:100%;height:100%;display:block}.hint{position:absolute;top:7px;left:8px;right:8px;text-align:center;font-size:12px;color:#fffad8d9;text-shadow:0 2px 5px #000;pointer-events:none}.controls{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-top:9px}button{min-height:50px;border:0;border-radius:13px;font-size:15px;font-weight:900;background:var(--gold);color:#332500}button.secondary{background:#24364d;color:#fff}button:disabled{opacity:.4}.status{min-height:24px;margin-top:8px;text-align:center;font-size:13px;color:#d8e5f4}.rules{margin-top:6px;color:var(--muted);font-size:11px;line-height:1.55}.pulse{animation:pulse .45s ease}@keyframes pulse{50%{filter:brightness(1.7)}}@media(max-width:470px){main{padding:8px}.value{font-size:17px}.card{padding:6px 3px}.controls{grid-template-columns:1.7fr 1fr 1fr}button{font-size:13px;min-height:46px}}
+</style>
 </head>
 <body>
 <main>
-  <div class="hud">
-    <div class="card"><div class="label">所持</div><div id="stock" class="value">50</div></div>
-    <div class="card"><div class="label">獲得</div><div id="won" class="value">0</div></div>
-    <div class="card"><div class="label">連続GET</div><div id="combo" class="value">0</div></div>
-    <div class="card"><div class="label">台上</div><div id="onboard" class="value">0</div></div>
-    <div class="card jackpot"><div class="label">JACKPOTゲージ <span id="jpText">0 / 20</span></div><div class="meter"><span id="jpBar"></span></div></div>
+<div class="hud">
+  <div class="card"><div class="label">所持メダル</div><div id="stock" class="value">120</div></div>
+  <div class="card"><div class="label">総獲得</div><div id="won" class="value">0</div></div>
+  <div class="card"><div class="label">チェッカー</div><div id="checks" class="value">0</div></div>
+  <div class="card"><div class="label">JP</div><div id="jp" class="value">100</div></div>
+  <div class="card slot">
+    <div class="reel" id="r1">-</div><div class="reel" id="r2">-</div><div class="reel" id="r3">-</div>
+    <div class="slotText" id="slotText">チェッカーに入れると抽選</div>
   </div>
-  <div class="game-wrap"><div id="stage" class="stage" aria-label="コインプッシャーゲーム盤"><canvas id="game"></canvas><div class="hint">盤面上部をタップして投入位置を選択</div></div></div>
-  <div class="controls"><button id="drop" type="button">中央に1枚投入</button><button id="restart" class="secondary" type="button">リスタート</button></div>
-  <div id="status" class="status" aria-live="polite"></div>
-  <div class="small">手前中央に落ちると獲得。左右落ちはロスト。20枚獲得するたびにJACKPOTとして10枚が盤面へ投入されます。</div>
+</div>
+<div class="game-wrap"><div class="stage" id="stage" aria-label="コインプッシャー盤面"><canvas id="game"></canvas><div class="hint">上部をタップして投入位置を選択</div></div></div>
+<div class="controls"><button id="drop" type="button">中央に1枚投入</button><button id="burst" class="secondary" type="button">5枚連投</button><button id="restart" class="secondary" type="button">再スタート</button></div>
+<div id="status" class="status" aria-live="polite"></div>
+<div class="rules">左右の緑ゲートがチェッカーです。コインを入れるとスロット抽選。3つ揃いで30枚払い出し、777でJPボール出現。JPボールを手前へ落とすと表示枚数を大量払い出しします。</div>
 </main>
 <script>
 (() => {
-  'use strict';
-  const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),stage=document.getElementById('stage');
-  const stockEl=document.getElementById('stock'),wonEl=document.getElementById('won'),comboEl=document.getElementById('combo'),onboardEl=document.getElementById('onboard'),statusEl=document.getElementById('status'),dropBtn=document.getElementById('drop'),restartBtn=document.getElementById('restart'),jpText=document.getElementById('jpText'),jpBar=document.getElementById('jpBar');
-  let W=400,H=500,scale=1,last=0,stock=50,won=0,combo=0,jp=0,nextId=1,coins=[],lastGainAt=0;
-  const coinR=9,gravity=31,damping=.989,restitution=.15;
-  const board={left:34,right:366,top:62,bottom:455,ledgeY:390};
-  const pusher={y:185,h:74,minY:164,maxY:228,speed:38,dir:1};
+'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),stage=document.getElementById('stage');
+const stockEl=document.getElementById('stock'),wonEl=document.getElementById('won'),checksEl=document.getElementById('checks'),jpEl=document.getElementById('jp'),statusEl=document.getElementById('status'),slotText=document.getElementById('slotText');
+const reels=[document.getElementById('r1'),document.getElementById('r2'),document.getElementById('r3')],dropBtn=document.getElementById('drop'),burstBtn=document.getElementById('burst'),restartBtn=document.getElementById('restart');
+const W=400,H=500,coinR=8.5,board={left:32,right:368,top:58,front:454,checkerY:342};
+const pusher={y:175,h:86,minY:165,maxY:236,speed:38,dir:1,prevY:175};
+const checkers=[{x:63,y:351,r:22},{x:337,y:351,r:22}];
+let last=0,nextId=1,stock=120,won=0,checks=0,jpValue=100,coins=[],balls=[],payoutQueue=0,payoutTimer=0,spinLocked=false,gameOver=false;
 
-  function resize(){const r=stage.getBoundingClientRect();scale=Math.max(1,Math.min(2,window.devicePixelRatio||1));canvas.width=Math.round(r.width*scale);canvas.height=Math.round(r.height*scale);canvas.style.width=r.width+'px';canvas.style.height=r.height+'px';}
-  function makeCoin(x,y,vx=0,vy=0){return{id:nextId++,x,y,vx,vy,r:coinR};}
-  function seedBoard(){for(let y=272;y<389;y+=18){for(let x=66+((Math.floor(y/18)%2)*9);x<338;x+=19){if(Math.random()>.12)coins.push(makeCoin(x+Math.random()*3,y+Math.random()*3));}}}
-  function reset(){stock=50;won=0;combo=0;jp=0;nextId=1;coins=[];pusher.y=185;pusher.dir=1;lastGainAt=0;seedBoard();statusEl.textContent='ゲーム開始';updateHud();}
-  function updateHud(){stockEl.textContent=stock;wonEl.textContent=won;comboEl.textContent=combo;onboardEl.textContent=coins.length;jpText.textContent=`${jp} / 20`;jpBar.style.width=(jp/20*100)+'%';dropBtn.disabled=stock<=0;}
-  function dropAt(x){if(stock<=0){statusEl.textContent='コインがありません。リスタートしてください。';return;}x=Math.max(board.left+coinR+4,Math.min(board.right-coinR-4,x));coins.push(makeCoin(x,76,(Math.random()-.5)*6,48));stock--;statusEl.textContent='1枚投入';updateHud();}
-  function jackpot(){jp-=20;for(let i=0;i<10;i++){const x=100+Math.random()*200;coins.push(makeCoin(x,82+Math.random()*16,(Math.random()-.5)*18,45+Math.random()*18));}statusEl.textContent='JACKPOT! 10枚投入！';stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');}
-  function collide(a,b){const dx=b.x-a.x,dy=b.y-a.y,rr=a.r+b.r,d2=dx*dx+dy*dy;if(d2<=0||d2>=rr*rr)return;const d=Math.sqrt(d2),nx=dx/d,ny=dy/d,over=rr-d;a.x-=nx*over*.5;a.y-=ny*over*.5;b.x+=nx*over*.5;b.y+=ny*over*.5;const sep=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(sep<0){const j=-(1+restitution)*sep*.5;a.vx-=j*nx;a.vy-=j*ny;b.vx+=j*nx;b.vy+=j*ny;}}
-  function step(dt,t){pusher.y+=pusher.dir*pusher.speed*dt;if(pusher.y>pusher.maxY){pusher.y=pusher.maxY;pusher.dir=-1}else if(pusher.y<pusher.minY){pusher.y=pusher.minY;pusher.dir=1}const px1=board.left+14,px2=board.right-14,py1=pusher.y,py2=pusher.y+pusher.h;
-    for(const c of coins){c.vy+=gravity*dt;c.vx*=Math.pow(damping,dt*60);c.vy*=Math.pow(damping,dt*60);c.x+=c.vx*dt;c.y+=c.vy*dt;if(c.y<board.ledgeY){if(c.x-c.r<board.left){c.x=board.left+c.r;c.vx=Math.abs(c.vx)*.25}if(c.x+c.r>board.right){c.x=board.right-c.r;c.vx=-Math.abs(c.vx)*.25}}if(c.x>px1-c.r&&c.x<px2+c.r&&c.y+c.r>py1&&c.y-c.r<py2){const dTop=Math.abs((c.y+c.r)-py1),dBottom=Math.abs(py2-(c.y-c.r));if(dTop<dBottom){c.y=py1-c.r;c.vy=Math.min(c.vy,-7)}else{c.y=py2+c.r;c.vy=Math.max(c.vy,pusher.dir>0?pusher.speed*.72:7)}}}
-    for(let pass=0;pass<2;pass++)for(let i=0;i<coins.length;i++)for(let j=i+1;j<coins.length;j++)collide(coins[i],coins[j]);
-    let gained=0,lost=0;coins=coins.filter(c=>{if(c.y-c.r>board.bottom){if(c.x>board.left+24&&c.x<board.right-24)gained++;else lost++;return false}if(c.y>board.ledgeY&&(c.x<board.left-18||c.x>board.right+18)){lost++;return false}return c.y<H+50;});
-    if(gained){if(t-lastGainAt<3500)combo+=gained;else combo=gained;lastGainAt=t;won+=gained;stock+=gained;jp+=gained;statusEl.textContent=combo>=3?`${gained}枚GET！ ${combo} COMBO!`:`${gained}枚ゲット！`;while(jp>=20)jackpot();updateHud();}else if(lost){combo=0;statusEl.textContent=`${lost}枚は横に落下`;updateHud();}else if(combo&&t-lastGainAt>3500){combo=0;updateHud();}}
-  function draw(){const sx=canvas.width/W,sy=canvas.height/H;ctx.setTransform(sx,0,0,sy,0,0);ctx.clearRect(0,0,W,H);let g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#314a70');g.addColorStop(1,'#111b2d');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.fillStyle='#081020';ctx.fillRect(0,0,board.left,H);ctx.fillRect(board.right,0,W-board.right,H);ctx.fillStyle='#314968';ctx.fillRect(board.left,board.top,board.right-board.left,board.bottom-board.top);ctx.fillStyle='#18243a';ctx.fillRect(board.left,board.ledgeY,board.right-board.left,board.bottom-board.ledgeY);ctx.fillStyle='#101726';ctx.fillRect(board.left+24,board.bottom-2,board.right-board.left-48,12);ctx.strokeStyle='#ff6b6b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(board.left+24,board.bottom);ctx.lineTo(board.right-24,board.bottom);ctx.stroke();ctx.fillStyle='#607796';ctx.fillRect(board.left+14,pusher.y,board.right-board.left-28,pusher.h);ctx.fillStyle='#9fb1ca';ctx.fillRect(board.left+14,pusher.y,board.right-board.left-28,8);ctx.fillStyle='#3f526e';ctx.fillRect(board.left+14,pusher.y+pusher.h-7,board.right-board.left-28,7);
-    for(const c of coins){ctx.save();ctx.shadowColor='#0007';ctx.shadowBlur=4;ctx.shadowOffsetY=2;ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fillStyle='#d6a92e';ctx.fill();ctx.restore();ctx.lineWidth=2;ctx.strokeStyle='#ffe081';ctx.stroke();ctx.beginPath();ctx.arc(c.x,c.y,c.r*.55,0,Math.PI*2);ctx.strokeStyle='#a77913';ctx.lineWidth=1;ctx.stroke();}ctx.fillStyle='#ffffffbb';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText('DROP ZONE',W/2,48);ctx.fillStyle='#ff8b8b';ctx.font='11px system-ui';ctx.fillText('GET LINE',W/2,448);}
-  function loop(t){const dt=Math.min(.033,(t-last)/1000||0);last=t;step(dt,t);draw();requestAnimationFrame(loop);}
-  stage.addEventListener('pointerdown',e=>{const r=stage.getBoundingClientRect();const y=(e.clientY-r.top)/r.height*H;if(y>150)return;const x=(e.clientX-r.left)/r.width*W;dropAt(x);});dropBtn.addEventListener('click',()=>dropAt(W/2));restartBtn.addEventListener('click',reset);window.addEventListener('resize',resize);resize();reset();requestAnimationFrame(loop);
+function resize(){const r=stage.getBoundingClientRect(),dpr=Math.max(1,Math.min(2,devicePixelRatio||1));canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.height*dpr);canvas.style.width=r.width+'px';canvas.style.height=r.height+'px';}
+function coin(x,y,vx=0,vy=0,paid=false){return{id:nextId++,x,y,vx,vy,r:coinR,checkerCooldown:0,paid};}
+function ball(x,y){return{id:nextId++,x,y,vx:0,vy:10,r:13};}
+function seed(){for(let y=278;y<405;y+=17){for(let x=58+((Math.floor(y/17)%2)*9);x<348;x+=18){if(Math.random()>.08)coins.push(coin(x+Math.random()*2,y+Math.random()*2));}}}
+function reset(){stock=120;won=0;checks=0;jpValue=100;coins=[];balls=[];payoutQueue=0;payoutTimer=0;spinLocked=false;gameOver=false;nextId=1;pusher.y=175;pusher.prevY=175;pusher.dir=1;reels.forEach(r=>r.textContent='-');slotText.textContent='チェッカーに入れると抽選';statusEl.textContent='狙った位置にメダルを入れてください';seed();updateHud();}
+function updateHud(){stockEl.textContent=stock;wonEl.textContent=won;checksEl.textContent=checks;jpEl.textContent=jpValue;dropBtn.disabled=stock<=0||gameOver;burstBtn.disabled=stock<=0||gameOver;}
+function dropAt(x,free=false){if(gameOver)return;if(!free&&stock<=0){statusEl.textContent='所持メダルがありません';return;}x=Math.max(board.left+coinR+5,Math.min(board.right-coinR-5,x));coins.push(coin(x,74,(Math.random()-.5)*5,36,free));if(!free)stock--;updateHud();}
+function queuePayout(n,label){payoutQueue+=n;statusEl.textContent=`${label}：${n}枚払い出し！`;stage.classList.remove('pulse');void stage.offsetWidth;stage.classList.add('pulse');}
+function spawnJPBall(){balls.push(ball(200,93));statusEl.textContent='777！JPボール出現！';slotText.textContent='JPボールを手前へ落とせ！';}
+function spinSlot(){if(spinLocked)return;spinLocked=true;checks++;updateHud();const symbols=['1','2','3','4','5','6','7'];let ticks=0;const final=Math.random();let result;
+  if(final<0.04)result=['7','7','7'];else if(final<0.18){const s=String(1+Math.floor(Math.random()*6));result=[s,s,s];}else result=[String(1+Math.floor(Math.random()*7)),String(1+Math.floor(Math.random()*7)),String(1+Math.floor(Math.random()*7))];
+  slotText.textContent='抽選中...';const timer=setInterval(()=>{ticks++;reels.forEach(r=>r.textContent=symbols[Math.floor(Math.random()*symbols.length)]);if(ticks>=10){clearInterval(timer);reels.forEach((r,i)=>r.textContent=result[i]);if(result[0]===result[1]&&result[1]===result[2]){if(result[0]==='7')spawnJPBall();else{queuePayout(30,'スロット当たり');slotText.textContent=`${result[0]}揃い！30枚`;}}else slotText.textContent='ハズレ';spinLocked=false;}},70);
+}
+function collide(a,b){const dx=b.x-a.x,dy=b.y-a.y,rr=a.r+b.r,d2=dx*dx+dy*dy;if(d2<=0||d2>=rr*rr)return;const d=Math.sqrt(d2),nx=dx/d,ny=dy/d,over=rr-d;a.x-=nx*over*.5;a.y-=ny*over*.5;b.x+=nx*over*.5;b.y+=ny*over*.5;const sep=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(sep<0){const j=-sep*.46;a.vx-=j*nx;a.vy-=j*ny;b.vx+=j*nx;b.vy+=j*ny;}}
+function constrainDisc(o){if(o.y<board.checkerY-10){if(o.x-o.r<board.left){o.x=board.left+o.r;o.vx=Math.abs(o.vx)*.15}if(o.x+o.r>board.right){o.x=board.right-o.r;o.vx=-Math.abs(o.vx)*.15}}}
+function pusherContact(o){const x1=board.left+16,x2=board.right-16,y1=pusher.y,y2=pusher.y+pusher.h;if(o.x>x1-o.r&&o.x<x2+o.r&&o.y+o.r>y1&&o.y-o.r<y2){const frontMoving=pusher.y>pusher.prevY;if(o.y>y2-o.r*1.2){o.y=y2+o.r;o.vy=Math.max(o.vy,frontMoving?pusher.speed*.9:3);}else if(o.y<y1+o.r*1.2){o.y=y1-o.r;o.vy=Math.min(o.vy,-4);}else{o.y=y2+o.r;o.vy=Math.max(o.vy,frontMoving?pusher.speed*.75:2);}}}
+function physicsList(list,dt,gravity){for(const o of list){o.vy+=gravity*dt;o.vx*=Math.pow(.985,dt*60);o.vy*=Math.pow(.985,dt*60);o.x+=o.vx*dt;o.y+=o.vy*dt;constrainDisc(o);pusherContact(o);if(o.checkerCooldown>0)o.checkerCooldown-=dt;}}
+function checkChecker(c){if(c.checkerCooldown>0)return false;for(const g of checkers){const dx=c.x-g.x,dy=c.y-g.y;if(dx*dx+dy*dy<(g.r-c.r*.15)*(g.r-c.r*.15)&&c.y>g.y-6){c.checkerCooldown=5;return true;}}return false;}
+function step(dt){pusher.prevY=pusher.y;pusher.y+=pusher.dir*pusher.speed*dt;if(pusher.y>=pusher.maxY){pusher.y=pusher.maxY;pusher.dir=-1}else if(pusher.y<=pusher.minY){pusher.y=pusher.minY;pusher.dir=1}
+  if(payoutQueue>0){payoutTimer-=dt;if(payoutTimer<=0){payoutTimer=.075;payoutQueue--;dropAt(105+Math.random()*190,true);}}
+  physicsList(coins,dt,26);physicsList(balls,dt,22);
+  for(let pass=0;pass<3;pass++){for(let i=0;i<coins.length;i++)for(let j=i+1;j<coins.length;j++)collide(coins[i],coins[j]);for(const b of balls)for(const c of coins)collide(b,c);}
+  let gained=0,lost=0,checkerHit=false;coins=coins.filter(c=>{if(checkChecker(c)){checkerHit=true;return false;}if(c.y-c.r>board.front){if(c.x>board.left+34&&c.x<board.right-34)gained++;else lost++;return false;}if(c.y>board.checkerY&& (c.x<board.left-18||c.x>board.right+18)){lost++;return false;}return c.y<H+40;});
+  if(checkerHit)spinSlot();if(gained){won+=gained;stock+=gained;statusEl.textContent=`${gained}枚GET！`;updateHud();}else if(lost){statusEl.textContent=`${lost}枚は横へ落下`;}
+  balls=balls.filter(b=>{if(b.y-b.r>board.front){if(b.x>board.left+28&&b.x<board.right-28){const award=jpValue;queuePayout(award,'JACKPOT');won+=award;jpValue=80+Math.floor(Math.random()*71);updateHud();}return false;}if(b.y>board.checkerY&&(b.x<board.left-22||b.x>board.right+22))return false;return b.y<H+50;});
+  if(stock<=0&&payoutQueue===0&&coins.length<8&&!gameOver){gameOver=true;statusEl.textContent='ゲームオーバー。再スタートで120枚から遊べます';updateHud();}
+}
+function drawCoin(c){ctx.save();ctx.shadowColor='#0008';ctx.shadowBlur=4;ctx.shadowOffsetY=2;ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fillStyle='#d9ab31';ctx.fill();ctx.restore();ctx.lineWidth=1.7;ctx.strokeStyle='#ffe99c';ctx.stroke();ctx.beginPath();ctx.arc(c.x,c.y,c.r*.53,0,Math.PI*2);ctx.strokeStyle='#9a6d12';ctx.lineWidth=1;ctx.stroke();}
+function draw(){const sx=canvas.width/W,sy=canvas.height/H;ctx.setTransform(sx,0,0,sy,0,0);ctx.clearRect(0,0,W,H);let g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#284763');g.addColorStop(1,'#101c29');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.fillStyle='#07101c';ctx.fillRect(0,0,board.left,H);ctx.fillRect(board.right,0,W-board.right,H);ctx.fillStyle='#314e67';ctx.fillRect(board.left,board.top,board.right-board.left,board.front-board.top);ctx.fillStyle='#1c3144';ctx.fillRect(board.left,board.checkerY,board.right-board.left,board.front-board.checkerY);
+  for(const ch of checkers){ctx.beginPath();ctx.arc(ch.x,ch.y,ch.r,0,Math.PI*2);ctx.fillStyle='#15382b';ctx.fill();ctx.strokeStyle='#66e2a6';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#9df3c8';ctx.font='bold 10px system-ui';ctx.textAlign='center';ctx.fillText('CHECK',ch.x,ch.y+3);}
+  ctx.fillStyle='#728ba6';ctx.fillRect(board.left+16,pusher.y,board.right-board.left-32,pusher.h);ctx.fillStyle='#bed0df';ctx.fillRect(board.left+16,pusher.y,board.right-board.left-32,8);ctx.fillStyle='#40566b';ctx.fillRect(board.left+16,pusher.y+pusher.h-8,board.right-board.left-32,8);
+  ctx.fillStyle='#09101a';ctx.fillRect(board.left+34,board.front-2,board.right-board.left-68,16);ctx.strokeStyle='#ff6677';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(board.left+34,board.front);ctx.lineTo(board.right-34,board.front);ctx.stroke();
+  for(const c of coins)drawCoin(c);for(const b of balls){ctx.save();ctx.shadowColor='#ff4d66';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fillStyle='#d8304f';ctx.fill();ctx.strokeStyle='#ffd0d8';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 10px system-ui';ctx.textAlign='center';ctx.fillText('JP',b.x,b.y+3);ctx.restore();}
+  ctx.fillStyle='#ffffffc0';ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillText('DROP ZONE',200,45);ctx.fillStyle='#ff9aaa';ctx.fillText('GET',200,448);
+}
+function loop(t){const dt=Math.min(.028,(t-last)/1000||0);last=t;step(dt);draw();requestAnimationFrame(loop);}
+stage.addEventListener('pointerdown',e=>{const r=stage.getBoundingClientRect(),y=(e.clientY-r.top)/r.height*H;if(y>150)return;dropAt((e.clientX-r.left)/r.width*W);});
+dropBtn.addEventListener('click',()=>dropAt(200));burstBtn.addEventListener('click',()=>{let n=Math.min(5,stock),i=0;const id=setInterval(()=>{if(i++>=n){clearInterval(id);return;}dropAt(115+Math.random()*170);},90);});restartBtn.addEventListener('click',reset);window.addEventListener('resize',resize);
+resize();reset();requestAnimationFrame(loop);
 })();
 </script>
 </body>
